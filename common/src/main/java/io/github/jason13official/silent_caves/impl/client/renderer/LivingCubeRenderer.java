@@ -7,7 +7,7 @@ import net.minecraft.client.renderer.entity.MobRenderer;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.inventory.InventoryMenu;
 
-public class LivingCubeRenderer<T extends LivingCube> extends MobRenderer<LivingCube, LivingCubeModel> {
+public class LivingCubeRenderer extends MobRenderer<LivingCube, LivingCubeModel> {
 
   public LivingCubeRenderer(Context context) {
     super(context, new LivingCubeModel(context.bakeLayer(LivingCubeModel.LAYER_LOCATION)), 0.0f);
