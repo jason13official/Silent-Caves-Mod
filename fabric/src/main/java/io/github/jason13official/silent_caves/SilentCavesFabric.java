@@ -10,6 +10,7 @@ import io.github.jason13official.silent_caves.impl.common.registry.ModTiles;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import net.fabricmc.api.ModInitializer;
+import net.fabricmc.fabric.api.object.builder.v1.entity.FabricDefaultAttributeRegistry;
 import net.fabricmc.fabric.api.resource.ResourceManagerHelper;
 import net.fabricmc.fabric.api.resource.SimpleSynchronousResourceReloadListener;
 import net.minecraft.core.Registry;
@@ -32,6 +33,8 @@ public class SilentCavesFabric implements ModInitializer {
     bind(BuiltInRegistries.CREATIVE_MODE_TAB, ModTabs::register);
 
     SilentCaves.init();
+
+    SilentCaves.registerEntityAttributes(FabricDefaultAttributeRegistry::register);
 
     ResourceManagerHelper.get(PackType.SERVER_DATA).registerReloadListener(new ResourceReloadListener());
   }

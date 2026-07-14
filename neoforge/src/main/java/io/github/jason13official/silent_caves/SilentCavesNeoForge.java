@@ -23,6 +23,7 @@ import net.neoforged.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.neoforged.fml.loading.FMLLoader;
 import net.neoforged.neoforge.common.NeoForge;
 import net.neoforged.neoforge.event.AddReloadListenerEvent;
+import net.neoforged.neoforge.event.entity.EntityAttributeCreationEvent;
 import net.neoforged.neoforge.registries.RegisterEvent;
 
 @Mod(Constants.MOD_ID)
@@ -43,6 +44,12 @@ public class SilentCavesNeoForge {
     bind(Registries.CREATIVE_MODE_TAB, ModTabs::register);
 
     EVENT_BUS.addListener((Consumer<FMLCommonSetupEvent>) event -> SilentCaves.init());
+
+    EVENT_BUS.addListener((Consumer<EntityAttributeCreationEvent>) event -> {
+      SilentCaves.registerEntityAttributes((entityType, builder) -> {
+        event.put(entityType, builder.build());
+      });
+    });
 
     NeoForge.EVENT_BUS.addListener((Consumer<AddReloadListenerEvent>) event -> {
       event.addListener(new ResourceReloadListener());
