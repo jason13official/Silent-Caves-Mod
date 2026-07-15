@@ -14,7 +14,6 @@ import java.util.Map;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.model.EntityModel;
 import net.minecraft.client.renderer.MultiBufferSource;
-import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.block.BlockModelShaper;
 import net.minecraft.client.renderer.block.model.BakedQuad;
 import net.minecraft.client.renderer.entity.LivingEntityRenderer;
@@ -45,7 +44,16 @@ public class TextureLayer<T extends Entity, M extends EntityModel<T>> extends Re
   @Override
   public void render(PoseStack poseStack, MultiBufferSource buffer, int packedLight, T entity, float limbSwing, float limbSwingAmount, float partialTick, float ageInTicks, float netHeadYaw, float headPitch) {
 
-    if (entity.isInvisible()) return;
+    staticRender(this, poseStack, buffer, packedLight, entity);
+  }
+
+  private static <T extends Entity> void staticRender(TextureLayer self, PoseStack poseStack, MultiBufferSource buffer, int packedLight, T entity) {
+
+    if (entity.isInvisible()) {
+      return;
+    }
+
+    poseStack.pushPose();
 
     ResourceLocation blockId = entity instanceof IBlockIdHolder idHolder ? idHolder.getBlockId() : AbstractIdentifierMob.DEFAULT_IDENTIFIER;
 
@@ -59,16 +67,20 @@ public class TextureLayer<T extends Entity, M extends EntityModel<T>> extends Re
     // create material out of chosen texture ID
     Material material = new Material(InventoryMenu.BLOCK_ATLAS, textureName);
 
-    // use our created material to create a vertex consumer for rendering
-    VertexConsumer consumer = material.buffer(buffer, this.getParentModel()::renderType); // <-- delegates to SpriteCoordinateExpander :(
+    // delegates to SpriteCoordinateExpander (or direct usage) uses sprite.getU(u) raw; if u > 1.0 it bleeds into neighboring textures in the atlas
+    // VertexConsumer consumer = material.buffer(buffer, self.getParentModel()::renderType); // <-- delegates to SpriteCoordinateExpander :(
+    // VertexConsumer consumer = new SpriteCoordinateExpander(buffer.getBuffer(material.renderType(self.getParentModel()::renderType)), material.sprite()); // which doesn't wrap the texture properly
 
-    // old version just renders the pure block atlas texture, which is not what we want lol
-    // this.getParentModel().renderToBuffer(poseStack, buffer.getBuffer(RenderType.cutout()), packedLight, OverlayTexture.NO_OVERLAY);
+    // improper offset for quads and can scale the texture; not intended/wanted behavior
+    // VertexConsumer consumer = new SheetedDecalTextureGenerator(material.buffer(buffer, self.getParentModel()::renderType), poseStack.last(), 1.0f);
 
-    // int overlay = entity instanceof LivingEntity living ? LivingEntityRenderer.getOverlayCoords(living, 0.0f) : OverlayTexture.NO_OVERLAY;
-    this.getParentModel().renderToBuffer(poseStack, consumer, packedLight, OverlayTexture.NO_OVERLAY);
+    VertexConsumer consumer = new TilingVertexConsumer(buffer.getBuffer(material.renderType(self.getParentModel()::renderType)), material.sprite());
+
+    int overlay = entity instanceof LivingEntity living ? LivingEntityRenderer.getOverlayCoords(living, 0.0f) : OverlayTexture.NO_OVERLAY;
+    self.getParentModel().renderToBuffer(poseStack, consumer, packedLight, overlay);
+
+    poseStack.popPose();
   }
-
 
   private static List<ResourceLocation> resolveTextures(ResourceLocation blockId) {
 
