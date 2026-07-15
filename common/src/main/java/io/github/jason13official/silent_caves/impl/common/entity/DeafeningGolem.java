@@ -1,6 +1,7 @@
 package io.github.jason13official.silent_caves.impl.common.entity;
 
 import io.github.jason13official.silent_caves.api.common.entity.IBlockIdHolder;
+import io.github.jason13official.silent_caves.impl.common.entity.navigation.CrawlCapableNavigation;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
@@ -20,7 +21,11 @@ import net.minecraft.world.entity.ai.goal.MoveTowardsTargetGoal;
 import net.minecraft.world.entity.ai.goal.RandomLookAroundGoal;
 import net.minecraft.world.entity.ai.goal.WaterAvoidingRandomStrollGoal;
 import net.minecraft.world.entity.ai.goal.target.NearestAttackableTargetGoal;
+import net.minecraft.world.entity.ai.navigation.PathNavigation;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.pathfinder.Node;
+import net.minecraft.world.level.pathfinder.Path;
+import net.minecraft.world.phys.AABB;
 
 public class DeafeningGolem extends AbstractDeafeningBlockIdMonster {
 
@@ -92,7 +97,7 @@ public class DeafeningGolem extends AbstractDeafeningBlockIdMonster {
     if (!this.level().isClientSide()) {
       this.setFlag(FLAG_IS_AGGRESSIVE, this.getTarget() != null);
 
-      boolean crawling = !this.wouldNotSuffocateAtTargetPose(Pose.STANDING);
+      boolean crawling = !this.wouldNotSuffocateAtTargetPose(Pose.STANDING) || this.pathLeadsThroughTightSpace();
       this.setFlag(FLAG_IS_CRAWLING, crawling);
       this.setPose(crawling ? Pose.CROUCHING : Pose.STANDING);
     }
@@ -104,6 +109,36 @@ public class DeafeningGolem extends AbstractDeafeningBlockIdMonster {
   @Override
   protected EntityDimensions getDefaultDimensions(Pose pose) {
     return pose == Pose.CROUCHING ? CRAWL_DIMENSIONS : super.getDefaultDimensions(pose);
+  }
+
+  /// true when solid blocks occupy the space between crawl height and standing height at the given position, i.e. the golem can't stand upright there.
+  private boolean hasBlockedOverhead(double x, double y, double z) {
+    AABB overhead = new AABB(x - CRAWL_WIDTH / 2.0, y + CRAWL_HEIGHT, z - CRAWL_WIDTH / 2.0, x + CRAWL_WIDTH / 2.0, y + this.getType().getHeight() + 1.0, z + CRAWL_WIDTH / 2.0);
+    return !this.level().noCollision(this, overhead);
+  }
+
+  /// true when any of the next few nodes on the active path require crawling, so the golem starts crawling before it physically reaches the tight space instead of bumping into the entrance.
+  private boolean pathLeadsThroughTightSpace() {
+    Path path = this.navigation.getPath();
+    if (path == null || path.isDone()) {
+      return false;
+    }
+
+    int next = path.getNextNodeIndex();
+    int limit = Math.min(next + 5, path.getNodeCount());
+    for (int i = next; i < limit; i++) {
+      Node node = path.getNode(i);
+      if (this.hasBlockedOverhead(node.x + 0.5, node.y, node.z + 0.5)) {
+        return true;
+      }
+    }
+
+    return false;
+  }
+
+  @Override
+  protected PathNavigation createNavigation(Level level) {
+    return new CrawlCapableNavigation(this, level);
   }
 
   @Override
