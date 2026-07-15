@@ -31,8 +31,12 @@ public abstract class AbstractBlockIdMonster extends Monster implements IBlockId
   /// accessor for saved data
   private static final EntityDataAccessor<String> SPAWNED_ON_BLOCK_ID = SynchedEntityData.defineId(AbstractBlockIdMonster.class, EntityDataSerializers.STRING);
 
+  private Block spawnedOnBlock;
+
   public AbstractBlockIdMonster(EntityType<? extends AbstractBlockIdMonster> entityType, Level level) {
     super(entityType, level);
+
+    this.spawnedOnBlock = Blocks.STONE;
   }
 
   @Override
@@ -55,6 +59,7 @@ public abstract class AbstractBlockIdMonster extends Monster implements IBlockId
 
     if (compound.contains(SPAWNED_ON_BLOCK_TAG)) {
       this.entityData.set(SPAWNED_ON_BLOCK_ID, compound.getString(SPAWNED_ON_BLOCK_TAG));
+      this.spawnedOnBlock = BuiltInRegistries.BLOCK.get(this.getBlockId());
     }
   }
 
@@ -64,11 +69,17 @@ public abstract class AbstractBlockIdMonster extends Monster implements IBlockId
     return ResourceLocation.parse(this.getEntityData().get(SPAWNED_ON_BLOCK_ID));
   }
 
+  public Block getSpawnedOnBlock() {
+
+    return spawnedOnBlock;
+  }
+
   @Override
   public @Nullable SpawnGroupData finalizeSpawn(ServerLevelAccessor level, DifficultyInstance difficulty, MobSpawnType spawnType, @Nullable SpawnGroupData spawnGroupData) {
 
     BlockState spawnedOnState = level.getBlockState(this.blockPosition().below());
     Block spawnedOnBlock = spawnedOnState.isAir() ? Blocks.STONE : spawnedOnState.getBlock();
+    this.spawnedOnBlock = spawnedOnBlock;
     this.getEntityData().set(SPAWNED_ON_BLOCK_ID, BuiltInRegistries.BLOCK.getKey(spawnedOnBlock).toString());
 
     return super.finalizeSpawn(level, difficulty, spawnType, spawnGroupData);

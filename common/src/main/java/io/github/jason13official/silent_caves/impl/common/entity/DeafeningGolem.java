@@ -1,5 +1,6 @@
 package io.github.jason13official.silent_caves.impl.common.entity;
 
+import io.github.jason13official.silent_caves.api.common.entity.IBlockIdHolder;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
@@ -30,12 +31,19 @@ public class DeafeningGolem extends AbstractDeafeningBlockIdMonster {
 
   @Override
   protected void registerGoals() {
-    
+
     this.goalSelector.addGoal(1, new MeleeAttackGoal(this, 1.0F, true));
     this.goalSelector.addGoal(2, new MoveTowardsTargetGoal(this, 0.9, 48.0F));
     this.goalSelector.addGoal(7, new WaterAvoidingRandomStrollGoal(this, 1.0F));
     this.goalSelector.addGoal(8, new RandomLookAroundGoal(this));
+    
+    this.targetSelector.addGoal(1, new NearestAttackableTargetGoal<>(this, LivingEntity.class, false, living -> {
 
-    this.targetSelector.addGoal(1, new NearestAttackableTargetGoal<>(this, LivingEntity.class, false));
+      if (living instanceof DeafeningGolem golem) {
+        return this.getSpawnedOnBlock() != golem.getSpawnedOnBlock();
+      }
+
+      return true;
+    }));
   }
 }
