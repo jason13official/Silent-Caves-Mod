@@ -4,6 +4,11 @@ import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
+import net.minecraft.world.entity.ai.goal.MeleeAttackGoal;
+import net.minecraft.world.entity.ai.goal.MoveTowardsTargetGoal;
+import net.minecraft.world.entity.ai.goal.RandomLookAroundGoal;
+import net.minecraft.world.entity.ai.goal.WaterAvoidingRandomStrollGoal;
+import net.minecraft.world.entity.ai.goal.target.NearestAttackableTargetGoal;
 import net.minecraft.world.level.Level;
 
 public class DeafeningGolem extends AbstractDeafeningBlockIdMonster {
@@ -21,5 +26,16 @@ public class DeafeningGolem extends AbstractDeafeningBlockIdMonster {
         .add(Attributes.ATTACK_DAMAGE, 15.0F)
         .add(Attributes.FOLLOW_RANGE, 48.0)
         .add(Attributes.STEP_HEIGHT, 1.2);
+  }
+
+  @Override
+  protected void registerGoals() {
+    
+    this.goalSelector.addGoal(1, new MeleeAttackGoal(this, 1.0F, true));
+    this.goalSelector.addGoal(2, new MoveTowardsTargetGoal(this, 0.9, 48.0F));
+    this.goalSelector.addGoal(7, new WaterAvoidingRandomStrollGoal(this, 1.0F));
+    this.goalSelector.addGoal(8, new RandomLookAroundGoal(this));
+
+    this.targetSelector.addGoal(1, new NearestAttackableTargetGoal<>(this, LivingEntity.class, false));
   }
 }
