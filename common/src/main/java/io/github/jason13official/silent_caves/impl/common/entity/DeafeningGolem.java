@@ -35,6 +35,10 @@ public class DeafeningGolem extends AbstractDeafeningBlockIdMonster {
   private static final byte FLAG_IS_AGGRESSIVE = 0x01;
   private static final byte FLAG_IS_CRAWLING = 0x02;
 
+  /// ticks to keep crawling after it's no longer strictly needed, so a momentary overhang clip on stairs/hilly terrain doesn't flip the pose (and bounding box) every tick and destabilize movement/rotation.
+  private static final int STAND_UP_DELAY_TICKS = 10;
+  private int ticksSinceCrawlNeeded;
+
   private static final String GOLEM_FLAGS = "GolemFlags";
 
   private static final EntityDataAccessor<Byte> DATA_ID_FLAGS = SynchedEntityData.defineId(DeafeningGolem.class, EntityDataSerializers.BYTE);
@@ -59,12 +63,12 @@ public class DeafeningGolem extends AbstractDeafeningBlockIdMonster {
   public static AttributeSupplier.Builder createMobAttributes() {
 
     return LivingEntity.createLivingAttributes()
-        .add(Attributes.MAX_HEALTH, 200.0F)
-        .add(Attributes.MOVEMENT_SPEED, 0.25F)
-        .add(Attributes.KNOCKBACK_RESISTANCE, 1.0F)
-        .add(Attributes.ATTACK_DAMAGE, 15.0F)
-        .add(Attributes.FOLLOW_RANGE, 48.0)
-        .add(Attributes.STEP_HEIGHT, 1.2);
+        .add(Attributes.MAX_HEALTH, 200.0D)
+        .add(Attributes.MOVEMENT_SPEED, 0.25D)
+        .add(Attributes.KNOCKBACK_RESISTANCE, 1.0D)
+        .add(Attributes.ATTACK_DAMAGE, 15.0D)
+        .add(Attributes.FOLLOW_RANGE, 32.0D)
+        .add(Attributes.STEP_HEIGHT, 1.2D);
   }
 
   @Override
@@ -97,7 +101,10 @@ public class DeafeningGolem extends AbstractDeafeningBlockIdMonster {
     if (!this.level().isClientSide()) {
       this.setFlag(FLAG_IS_AGGRESSIVE, this.getTarget() != null);
 
-      boolean crawling = !this.wouldNotSuffocateAtTargetPose(Pose.STANDING) || this.pathLeadsThroughTightSpace();
+      boolean needsToCrawl = !this.wouldNotSuffocateAtTargetPose(Pose.STANDING) || this.pathLeadsThroughTightSpace();
+      this.ticksSinceCrawlNeeded = needsToCrawl ? 0 : this.ticksSinceCrawlNeeded + 1;
+
+      boolean crawling = needsToCrawl || this.ticksSinceCrawlNeeded < STAND_UP_DELAY_TICKS;
       this.setFlag(FLAG_IS_CRAWLING, crawling);
       this.setPose(crawling ? Pose.CROUCHING : Pose.STANDING);
     }
@@ -125,7 +132,8 @@ public class DeafeningGolem extends AbstractDeafeningBlockIdMonster {
     }
 
     int next = path.getNextNodeIndex();
-    int limit = Math.min(next + 5, path.getNodeCount());
+    // int limit = Math.min(next + 5, path.getNodeCount());
+    int limit = Math.min(next + 2, path.getNodeCount());
     for (int i = next; i < limit; i++) {
       Node node = path.getNode(i);
       if (this.hasBlockedOverhead(node.x + 0.5, node.y, node.z + 0.5)) {
@@ -138,7 +146,8 @@ public class DeafeningGolem extends AbstractDeafeningBlockIdMonster {
 
   @Override
   protected PathNavigation createNavigation(Level level) {
-    return new CrawlCapableNavigation(this, level);
+
+    return new CrawlCapableNavigation(this, level, CRAWL_WIDTH, CRAWL_HEIGHT);
   }
 
   @Override
