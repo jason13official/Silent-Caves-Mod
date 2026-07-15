@@ -1,10 +1,8 @@
 package io.github.jason13official.silent_caves.impl.client.renderer;
 
 import io.github.jason13official.silent_caves.impl.client.model.DeafeningGolemModel;
-import io.github.jason13official.silent_caves.impl.client.model.MonsterCubeModel;
 import io.github.jason13official.silent_caves.impl.client.renderer.layer.TextureLayer;
 import io.github.jason13official.silent_caves.impl.common.entity.DeafeningGolem;
-import io.github.jason13official.silent_caves.impl.common.entity.MonsterCube;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.entity.EntityRendererProvider.Context;
 import net.minecraft.client.renderer.entity.MobRenderer;
@@ -28,7 +26,7 @@ public class DeafeningGolemRenderer extends MobRenderer<DeafeningGolem, Deafenin
   }
 
   @Override
-  public ResourceLocation getTextureLocation(DeafeningGolem monsterCube) {
+  public ResourceLocation getTextureLocation(DeafeningGolem golem) {
 
     return InventoryMenu.BLOCK_ATLAS;
   }

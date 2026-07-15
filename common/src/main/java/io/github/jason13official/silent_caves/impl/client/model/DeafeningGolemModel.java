@@ -1,8 +1,8 @@
 package io.github.jason13official.silent_caves.impl.client.model;
 
 import io.github.jason13official.silent_caves.SilentCaves;
+import io.github.jason13official.silent_caves.impl.client.animation.DeafeningGolemAnimations;
 import io.github.jason13official.silent_caves.impl.common.entity.DeafeningGolem;
-import io.github.jason13official.silent_caves.impl.common.entity.MonsterCube;
 import net.minecraft.client.model.HierarchicalModel;
 import net.minecraft.client.model.geom.ModelLayerLocation;
 import net.minecraft.client.model.geom.ModelPart;
@@ -63,6 +63,14 @@ public class DeafeningGolemModel extends HierarchicalModel<DeafeningGolem> {
   public void setupAnim(DeafeningGolem entity, float limbSwing, float limbSwingAmount, float ageInTicks, float netHeadYaw, float headPitch) {
     this.root().getAllParts().forEach(ModelPart::resetPose);
     this.applyHeadRotation(netHeadYaw);
+
+    this.animate(entity.IDLE_ANIM_STATE, DeafeningGolemAnimations.IDLE, ageInTicks, 1.0f);
+    this.animate(entity.WALK_ANIM_STATE, DeafeningGolemAnimations.WALK, ageInTicks, 1.0f);
+    this.animate(entity.SPRINT_ANIM_STATE, DeafeningGolemAnimations.SPRINT, ageInTicks, 1.0f);
+    this.animate(entity.ATTACK_FLING_ANIM_STATE, DeafeningGolemAnimations.ATTACK_FLING, ageInTicks, 1.0f);
+    this.animate(entity.ATTACK_SWIPE_RIGHT_ANIM_STATE, DeafeningGolemAnimations.ATTACK_SWIPE_RIGHT, ageInTicks, 1.0f);
+    this.animate(entity.CRAWL_ANIM_STATE, DeafeningGolemAnimations.CRAWL, ageInTicks, 1.0f);
+    this.animate(entity.HEAR_NO_EVIL_ANIM_STATE, DeafeningGolemAnimations.HEAR_NO_EVIL, ageInTicks, 1.0f);
   }
 
   private void applyHeadRotation(float headRotation) {
