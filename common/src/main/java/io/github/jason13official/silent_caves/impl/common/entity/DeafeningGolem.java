@@ -36,7 +36,7 @@ public class DeafeningGolem extends AbstractDeafeningBlockIdMonster {
     this.goalSelector.addGoal(2, new MoveTowardsTargetGoal(this, 0.9, 48.0F));
     this.goalSelector.addGoal(7, new WaterAvoidingRandomStrollGoal(this, 1.0F));
     this.goalSelector.addGoal(8, new RandomLookAroundGoal(this));
-    
+
     this.targetSelector.addGoal(1, new NearestAttackableTargetGoal<>(this, LivingEntity.class, false, living -> {
 
       if (living instanceof DeafeningGolem golem) {
