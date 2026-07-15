@@ -2,5 +2,8 @@
   "itemGroup.silentCaves": "Silent Caves",
 
   "entity.silent_caves.monster_cube": "Monster Cube",
-  "item.silent_caves.monster_cube_spawn_egg": "Monster Cube Spawn Egg"
+  "item.silent_caves.monster_cube_spawn_egg": "Monster Cube Spawn Egg",
+
+  "entity.silent_caves.deafening_golem": "Deafening Golem",
+  "item.silent_caves.deafening_golem_spawn_egg": "Deafening Golem Spawn Egg"
 }

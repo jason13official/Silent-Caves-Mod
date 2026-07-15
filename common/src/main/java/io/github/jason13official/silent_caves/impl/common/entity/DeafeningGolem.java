@@ -22,11 +22,4 @@ public class DeafeningGolem extends AbstractDeafeningBlockIdMonster {
         .add(Attributes.FOLLOW_RANGE, 48.0)
         .add(Attributes.STEP_HEIGHT, 1.2);
   }
-
-  /// stops drowning damage
-  @Override
-  protected int decreaseAirSupply(int currentAir) {
-
-    return currentAir;
-  }
 }

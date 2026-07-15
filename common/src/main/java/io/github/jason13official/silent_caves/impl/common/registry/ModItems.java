@@ -10,10 +10,14 @@ import net.minecraft.world.item.Item.Properties;
 public class ModItems {
 
   public static Item MONSTER_CUBE_SPAWN_EGG;
+  public static Item DEAFENING_GOLEM_SPAWN_EGG;
 
   public static void register(BiConsumer<Item, ResourceLocation> consumer) {
 
     MONSTER_CUBE_SPAWN_EGG = Services.PLATFORM.createSpawnEggItem(() -> ModEntities.MONSTER_CUBE, 0x000000, 0xf800f8, new Properties());
     consumer.accept(MONSTER_CUBE_SPAWN_EGG, SilentCaves.identifier("monster_cube_spawn_egg"));
+
+    DEAFENING_GOLEM_SPAWN_EGG = Services.PLATFORM.createSpawnEggItem(() -> ModEntities.DEAFENING_GOLEM, 0x686868, 0x8f8f8f, new Properties());
+    consumer.accept(DEAFENING_GOLEM_SPAWN_EGG, SilentCaves.identifier("deafening_golem_spawn_egg"));
   }
 }

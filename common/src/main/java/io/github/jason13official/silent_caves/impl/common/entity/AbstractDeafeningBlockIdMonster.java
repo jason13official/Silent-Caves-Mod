@@ -14,6 +14,13 @@ public abstract class AbstractDeafeningBlockIdMonster extends AbstractBlockIdMon
     super(entityType, level);
   }
 
+  /// stops drowning damage
+  @Override
+  protected int decreaseAirSupply(int currentAir) {
+
+    return currentAir;
+  }
+
   /// note: usage of [SoundSuppression] to quiet sounds for nearby players
   @Override
   public void tick() {
