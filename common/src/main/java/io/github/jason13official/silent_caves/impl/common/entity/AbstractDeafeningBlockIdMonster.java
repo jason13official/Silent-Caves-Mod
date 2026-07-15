@@ -2,22 +2,16 @@ package io.github.jason13official.silent_caves.impl.common.entity;
 
 import io.github.jason13official.silent_caves.api.client.sound.SoundSuppression;
 import net.minecraft.client.Minecraft;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
-import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.level.Level;
 
-public class LivingCube extends AbstractIdentifierMob {
+public abstract class AbstractDeafeningBlockIdMonster extends AbstractBlockIdMonster {
 
-  public LivingCube(EntityType<? extends LivingCube> entityType, Level level) {
+  public AbstractDeafeningBlockIdMonster(EntityType<? extends AbstractDeafeningBlockIdMonster> entityType, Level level) {
     super(entityType, level);
-  }
-
-  public static AttributeSupplier.Builder createMobAttributes() {
-
-    return LivingEntity.createLivingAttributes().add(Attributes.FOLLOW_RANGE, 48.0);
   }
 
   /// note: usage of [SoundSuppression] to quiet sounds for nearby players
@@ -28,6 +22,15 @@ public class LivingCube extends AbstractIdentifierMob {
     if (this.level().isClientSide()) {
       SoundSuppression.adjustClientVolumeLevels(Minecraft.getInstance(), this);
     }
+  }
+
+  /// note: usage of [SoundSuppression] to undo changes to client sound on entity killed
+  @Override
+  public boolean killedEntity(ServerLevel level, LivingEntity entity) {
+    if (this.level().isClientSide()) {
+      SoundSuppression.restoreClientVolumes(Minecraft.getInstance());
+    }
+    return super.killedEntity(level, entity);
   }
 
   /// note: usage of [SoundSuppression] to undo changes to client sound on entity removal

@@ -1,7 +1,8 @@
 package io.github.jason13official.silent_caves.impl.client.model;
 
 import io.github.jason13official.silent_caves.Constants;
-import io.github.jason13official.silent_caves.impl.common.entity.LivingCube;
+import io.github.jason13official.silent_caves.SilentCaves;
+import io.github.jason13official.silent_caves.impl.common.entity.MonsterCube;
 import net.minecraft.client.model.HierarchicalModel;
 import net.minecraft.client.model.geom.ModelLayerLocation;
 import net.minecraft.client.model.geom.ModelPart;
@@ -13,14 +14,14 @@ import net.minecraft.client.model.geom.builders.MeshDefinition;
 import net.minecraft.client.model.geom.builders.PartDefinition;
 import net.minecraft.resources.ResourceLocation;
 
-public class LivingCubeModel extends HierarchicalModel<LivingCube> {
+public class MonsterCubeModel extends HierarchicalModel<MonsterCube> {
 
-  public static final ModelLayerLocation LAYER_LOCATION = new ModelLayerLocation(ResourceLocation.fromNamespaceAndPath(Constants.MOD_ID, "cube"), "main");
+  public static final ModelLayerLocation LAYER_LOCATION = new ModelLayerLocation(SilentCaves.identifier("monster_cube"), "main");
 
   private final ModelPart root;
   private final ModelPart body;
 
-  public LivingCubeModel(ModelPart root) {
+  public MonsterCubeModel(ModelPart root) {
     this.root = root;
     this.body = root.getChild("body");
   }
@@ -40,7 +41,7 @@ public class LivingCubeModel extends HierarchicalModel<LivingCube> {
   }
 
   @Override
-  public void setupAnim(LivingCube livingCube, float v, float v1, float v2, float v3, float v4) {
+  public void setupAnim(MonsterCube monsterCube, float v, float v1, float v2, float v3, float v4) {
 
   }
 }

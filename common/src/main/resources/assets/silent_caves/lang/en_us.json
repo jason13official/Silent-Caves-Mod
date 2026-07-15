@@ -1,6 +1,6 @@
 {
   "itemGroup.silentCaves": "Silent Caves",
 
-  "entity.silent_caves.living_cube": "Living Cube",
-  "item.silent_caves.living_cube_spawn_egg": "Living Cube Spawn Egg"
+  "entity.silent_caves.monster_cube": "Monster Cube",
+  "item.silent_caves.monster_cube_spawn_egg": "Monster Cube Spawn Egg"
 }

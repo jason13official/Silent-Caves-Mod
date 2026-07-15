@@ -10,9 +10,9 @@ import net.minecraft.network.syncher.SynchedEntityData.Builder;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.DifficultyInstance;
 import net.minecraft.world.entity.EntityType;
-import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.MobSpawnType;
 import net.minecraft.world.entity.SpawnGroupData;
+import net.minecraft.world.entity.monster.Monster;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.ServerLevelAccessor;
 import net.minecraft.world.level.block.Block;
@@ -20,7 +20,7 @@ import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
 import org.jetbrains.annotations.Nullable;
 
-public abstract class AbstractIdentifierMob extends Mob implements IBlockIdHolder {
+public abstract class AbstractBlockIdMonster extends Monster implements IBlockIdHolder {
 
   /// minecraft:stone, an identifier within the BLOCKS registry
   public static ResourceLocation DEFAULT_IDENTIFIER = ResourceLocation.withDefaultNamespace("stone");
@@ -29,9 +29,9 @@ public abstract class AbstractIdentifierMob extends Mob implements IBlockIdHolde
   public static final String SPAWNED_ON_BLOCK_TAG = "SpawnedOnBlock";
 
   /// accessor for saved data
-  private static final EntityDataAccessor<String> SPAWNED_ON_BLOCK_ID = SynchedEntityData.defineId(AbstractIdentifierMob.class, EntityDataSerializers.STRING);
+  private static final EntityDataAccessor<String> SPAWNED_ON_BLOCK_ID = SynchedEntityData.defineId(AbstractBlockIdMonster.class, EntityDataSerializers.STRING);
 
-  public AbstractIdentifierMob(EntityType<? extends AbstractIdentifierMob> entityType, Level level) {
+  public AbstractBlockIdMonster(EntityType<? extends AbstractBlockIdMonster> entityType, Level level) {
     super(entityType, level);
   }
 

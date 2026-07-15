@@ -1,6 +1,6 @@
 package io.github.jason13official.silent_caves;
 
-import io.github.jason13official.silent_caves.impl.common.entity.LivingCube;
+import io.github.jason13official.silent_caves.impl.common.entity.MonsterCube;
 import io.github.jason13official.silent_caves.impl.common.registry.ModEntities;
 import java.util.function.BiConsumer;
 import net.minecraft.resources.ResourceLocation;
@@ -19,6 +19,6 @@ public class SilentCaves {
 
   public static void registerEntityAttributes(BiConsumer<EntityType<? extends LivingEntity>, AttributeSupplier.Builder> consumer) {
 
-    consumer.accept(ModEntities.LIVING_CUBE, LivingCube.createMobAttributes());
+    consumer.accept(ModEntities.MONSTER_CUBE, MonsterCube.createMobAttributes());
   }
 }

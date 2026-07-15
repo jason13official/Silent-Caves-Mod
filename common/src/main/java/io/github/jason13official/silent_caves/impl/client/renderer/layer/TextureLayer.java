@@ -4,7 +4,7 @@ import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import io.github.jason13official.silent_caves.Constants;
 import io.github.jason13official.silent_caves.api.common.entity.IBlockIdHolder;
-import io.github.jason13official.silent_caves.impl.common.entity.AbstractIdentifierMob;
+import io.github.jason13official.silent_caves.impl.common.entity.AbstractBlockIdMonster;
 import io.github.jason13official.silent_caves.platform.Services;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -55,7 +55,7 @@ public class TextureLayer<T extends Entity, M extends EntityModel<T>> extends Re
 
     poseStack.pushPose();
 
-    ResourceLocation blockId = entity instanceof IBlockIdHolder idHolder ? idHolder.getBlockId() : AbstractIdentifierMob.DEFAULT_IDENTIFIER;
+    ResourceLocation blockId = entity instanceof IBlockIdHolder idHolder ? idHolder.getBlockId() : AbstractBlockIdMonster.DEFAULT_IDENTIFIER;
 
     List<ResourceLocation> textures = resolveTextures(blockId);
 
@@ -107,7 +107,7 @@ public class TextureLayer<T extends Entity, M extends EntityModel<T>> extends Re
 
     // safeguard against blocks with no textures (i.e. air or similar blocks added by mods)
     if (names.isEmpty()) {
-      return TEXTURE_CACHE.computeIfAbsent(AbstractIdentifierMob.DEFAULT_IDENTIFIER, TextureLayer::getTexturesFromBlockId);
+      return TEXTURE_CACHE.computeIfAbsent(AbstractBlockIdMonster.DEFAULT_IDENTIFIER, TextureLayer::getTexturesFromBlockId);
     }
 
     if (Services.PLATFORM.isDevelopmentEnvironment()) {
