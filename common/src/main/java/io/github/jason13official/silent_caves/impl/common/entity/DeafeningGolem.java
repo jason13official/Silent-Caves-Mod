@@ -3,6 +3,7 @@ package io.github.jason13official.silent_caves.impl.common.entity;
 import io.github.jason13official.silent_caves.Constants;
 import io.github.jason13official.silent_caves.api.common.entity.IBlockIdHolder;
 import io.github.jason13official.silent_caves.impl.client.animation.DeafeningGolemAnimations;
+import io.github.jason13official.silent_caves.impl.common.ModConfig;
 import io.github.jason13official.silent_caves.impl.common.entity.navigation.CrawlCapableNavigation;
 import io.github.jason13official.silent_caves.impl.common.registry.ModEntities;
 import io.github.jason13official.silent_caves.platform.Services;
@@ -51,7 +52,7 @@ public class DeafeningGolem extends AbstractDeafeningBlockIdMonster {
     }
 
     // 5% chance to spawn naturally
-    if (level.getRandom().nextFloat() >= 0.05f) {
+    if (level.getRandom().nextFloat() >= ModConfig.SPAWN_CHANCE.getter().get()) {
       return false;
     }
 

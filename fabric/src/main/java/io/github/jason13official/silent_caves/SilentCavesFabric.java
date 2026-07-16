@@ -1,5 +1,6 @@
 package io.github.jason13official.silent_caves;
 
+import io.github.jason13official.silent_caves.impl.common.ModConfigIO;
 import io.github.jason13official.silent_caves.impl.common.entity.DeafeningGolem;
 import io.github.jason13official.silent_caves.impl.common.registry.ModBlocks;
 import io.github.jason13official.silent_caves.impl.common.registry.ModEntities;
@@ -8,6 +9,7 @@ import io.github.jason13official.silent_caves.impl.common.registry.ModMenus;
 import io.github.jason13official.silent_caves.impl.common.registry.ModParticles;
 import io.github.jason13official.silent_caves.impl.common.registry.ModTabs;
 import io.github.jason13official.silent_caves.impl.common.registry.ModTiles;
+import io.github.jason13official.silent_caves.platform.Services;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import net.fabricmc.api.ModInitializer;
@@ -72,7 +74,7 @@ public class SilentCavesFabric implements ModInitializer {
 
     @Override
     public void onResourceManagerReload(ResourceManager resourceManager) {
-      // ModConfig.load(Services.PLATFORM.getConfigDirectory());
+      ModConfigIO.load(Services.PLATFORM.getConfigDirectory());
     }
   }
 }
