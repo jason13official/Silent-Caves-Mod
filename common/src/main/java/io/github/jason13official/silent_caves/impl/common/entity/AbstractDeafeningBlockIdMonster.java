@@ -44,7 +44,19 @@ public abstract class AbstractDeafeningBlockIdMonster extends AbstractBlockIdMon
     }
   }
 
+  /// subclasses may intentionally hold the mob still, so we need to recover
+  protected boolean isNavigationPaused() {
+
+    return false;
+  }
+
   private void detectAndRecoverFromStuck() {
+    if (this.isNavigationPaused()) {
+      this.lastStuckCheckPos = this.blockPosition();
+      this.stuckTicks = 0;
+      return;
+    }
+
     BlockPos pos = this.blockPosition();
     if (pos.equals(this.lastStuckCheckPos)) {
       this.stuckTicks++;

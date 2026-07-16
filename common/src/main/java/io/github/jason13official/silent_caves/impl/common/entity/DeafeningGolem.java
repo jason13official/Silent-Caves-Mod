@@ -1,6 +1,7 @@
 package io.github.jason13official.silent_caves.impl.common.entity;
 
 import io.github.jason13official.silent_caves.api.common.entity.IBlockIdHolder;
+import io.github.jason13official.silent_caves.impl.client.animation.DeafeningGolemAnimations;
 import io.github.jason13official.silent_caves.impl.common.entity.navigation.CrawlCapableNavigation;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.syncher.EntityDataAccessor;
@@ -35,9 +36,13 @@ public class DeafeningGolem extends AbstractDeafeningBlockIdMonster {
   private static final byte FLAG_IS_AGGRESSIVE = 0x01;
   private static final byte FLAG_IS_CRAWLING = 0x02;
 
-  /// ticks to keep crawling after it's no longer strictly needed, so a momentary overhang clip on stairs/hilly terrain doesn't flip the pose (and bounding box) every tick and destabilize movement/rotation.
+  /// patch fix for not crawling everywhere
   private static final int STAND_UP_DELAY_TICKS = 10;
   private int ticksSinceCrawlNeeded;
+
+  /// matches the animation length of [DeafeningGolemAnimations#HEAR_NO_EVIL]; navigation is paused for the duration so the golem doesn't walk mid-animation.
+  private static final int HEAR_NO_EVIL_FREEZE_TICKS = 80;
+  private int hearNoEvilFreezeTicks;
 
   private static final String GOLEM_FLAGS = "GolemFlags";
 
@@ -99,6 +104,10 @@ public class DeafeningGolem extends AbstractDeafeningBlockIdMonster {
     super.tick();
 
     if (!this.level().isClientSide()) {
+      if (this.hearNoEvilFreezeTicks > 0) {
+        this.hearNoEvilFreezeTicks--;
+      }
+
       this.setFlag(FLAG_IS_AGGRESSIVE, this.getTarget() != null);
 
       boolean needsToCrawl = !this.wouldNotSuffocateAtTargetPose(Pose.STANDING) || this.pathLeadsThroughTightSpace();
@@ -171,7 +180,21 @@ public class DeafeningGolem extends AbstractDeafeningBlockIdMonster {
   @Override
   public boolean killedEntity(ServerLevel level, LivingEntity entity) {
     this.level().broadcastEntityEvent(this, EVENT_HEAR_NO_EVIL);
+    this.hearNoEvilFreezeTicks = HEAR_NO_EVIL_FREEZE_TICKS;
     return super.killedEntity(level, entity);
+  }
+
+  /// zeroed out while [DeafeningGolem#hearNoEvilFreezeTicks] is active so [LivingEntity#travel] doesn't move the entity
+  @Override
+  public float getSpeed() {
+    
+    return this.hearNoEvilFreezeTicks > 0 ? 0.0F : super.getSpeed();
+  }
+
+  @Override
+  protected boolean isNavigationPaused() {
+
+    return this.hearNoEvilFreezeTicks > 0;
   }
 
   @Override
