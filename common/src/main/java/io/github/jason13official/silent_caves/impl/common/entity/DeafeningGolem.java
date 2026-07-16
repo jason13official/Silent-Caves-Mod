@@ -25,7 +25,7 @@ import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.ai.goal.MeleeAttackGoal;
 import net.minecraft.world.entity.ai.goal.MoveTowardsTargetGoal;
 import net.minecraft.world.entity.ai.goal.RandomLookAroundGoal;
-import net.minecraft.world.entity.ai.goal.WaterAvoidingRandomStrollGoal;
+import net.minecraft.world.entity.ai.goal.RandomStrollGoal;
 import net.minecraft.world.entity.ai.goal.target.NearestAttackableTargetGoal;
 import net.minecraft.world.entity.ai.navigation.PathNavigation;
 import net.minecraft.world.entity.monster.Monster;
@@ -33,6 +33,7 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.LightLayer;
 import net.minecraft.world.level.pathfinder.Node;
 import net.minecraft.world.level.pathfinder.Path;
+import net.minecraft.world.level.pathfinder.PathType;
 import net.minecraft.world.phys.AABB;
 
 public class DeafeningGolem extends AbstractDeafeningBlockIdMonster {
@@ -104,6 +105,8 @@ public class DeafeningGolem extends AbstractDeafeningBlockIdMonster {
 
   public DeafeningGolem(EntityType<? extends AbstractDeafeningBlockIdMonster> entityType, Level level) {
     super(entityType, level);
+
+    this.setPathfindingMalus(PathType.WATER, 0.0F);
   }
 
   public static AttributeSupplier.Builder createMobAttributes() {
@@ -114,7 +117,15 @@ public class DeafeningGolem extends AbstractDeafeningBlockIdMonster {
         .add(Attributes.KNOCKBACK_RESISTANCE, 1.0D)
         .add(Attributes.ATTACK_DAMAGE, 15.0D)
         .add(Attributes.FOLLOW_RANGE, 32.0D)
-        .add(Attributes.STEP_HEIGHT, 1.2D);
+        .add(Attributes.STEP_HEIGHT, 1.2D)
+        .add(Attributes.WATER_MOVEMENT_EFFICIENCY, 0.85D);
+  }
+
+  /// stops fluid currents from sweeping the golem around
+  @Override
+  public boolean isPushedByFluid() {
+
+    return false;
   }
 
   @Override
@@ -205,7 +216,7 @@ public class DeafeningGolem extends AbstractDeafeningBlockIdMonster {
 
     this.goalSelector.addGoal(1, new MeleeAttackGoal(this, 1.0F, true));
     this.goalSelector.addGoal(2, new MoveTowardsTargetGoal(this, 0.9, 48.0F));
-    this.goalSelector.addGoal(7, new WaterAvoidingRandomStrollGoal(this, 1.0F));
+    this.goalSelector.addGoal(7, new RandomStrollGoal(this, 1.0));
     this.goalSelector.addGoal(8, new RandomLookAroundGoal(this));
 
     this.targetSelector.addGoal(1, new NearestAttackableTargetGoal<>(this, LivingEntity.class, false, living -> {
