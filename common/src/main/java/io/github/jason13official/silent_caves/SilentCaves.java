@@ -20,8 +20,6 @@ public class SilentCaves {
   public static void init() {
 
     ModConfigIO.load(Services.PLATFORM.getConfigDirectory());
-
-    tryStuff();
   }
 
   public static ResourceLocation identifier(final String path) {
@@ -32,18 +30,5 @@ public class SilentCaves {
 
     consumer.accept(ModEntities.MONSTER_CUBE, MonsterCube.createMobAttributes());
     consumer.accept(ModEntities.DEAFENING_GOLEM, DeafeningGolem.createMobAttributes());
-  }
-
-  private static void tryStuff() {
-    List<TagKey<Block>> list = DeafeningGolem.VALID_SPAWNS.get();
-
-    System.out.println();
-    System.out.println(Arrays.toString(list.toArray()));
-    System.out.println();
-    list.forEach(blockTagKey -> {
-      System.out.println(" raws " + blockTagKey);
-      System.out.println(" toString " + blockTagKey.toString());
-      System.out.println(" toString " + blockTagKey.location().toString());
-    });
   }
 }
