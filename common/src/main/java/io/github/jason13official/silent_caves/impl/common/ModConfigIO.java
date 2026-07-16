@@ -3,9 +3,17 @@ package io.github.jason13official.silent_caves.impl.common;
 import com.electronwill.nightconfig.core.Config;
 import com.electronwill.nightconfig.core.file.CommentedFileConfig;
 import io.github.jason13official.silent_caves.Constants;
+import io.github.jason13official.silent_caves.impl.common.entity.AbstractBlockIdMonster;
 import java.io.File;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import net.minecraft.core.registries.Registries;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.tags.TagKey;
+import net.minecraft.world.level.block.Block;
 
 public class ModConfigIO {
 
@@ -43,6 +51,27 @@ public class ModConfigIO {
       ModConfig.STEP_HEIGHT.setter().accept(Double.parseDouble(config.getOrElse(ModConfig.STEP_HEIGHT.key(), String.valueOf(ModConfig.STEP_HEIGHT.getter().get().doubleValue()))));
       ModConfig.WATER_MOVEMENT_EFFICIENCY.setter().accept(Double.parseDouble(config.getOrElse(ModConfig.WATER_MOVEMENT_EFFICIENCY.key(), String.valueOf(ModConfig.WATER_MOVEMENT_EFFICIENCY.getter().get().doubleValue()))));
 
+      // region blockTagGetters
+
+      // get default valid block tag list as a list of short strings i.e. ["minecraft:stone_ore_replaceables", "minecraft:deepslate_ore_replaceables", ...]
+      List<String> defaultBlockTags = AbstractBlockIdMonster.VALID_SPAWNS.get().stream().map(blockTagKey -> blockTagKey.location().toString()).toList();
+
+      // get configured block tag values as a list of short strings
+      List<String> loadedBlockTags = config.getOrElse(ModConfig.VALID_SPAWN_BLOCK_TAGS.key(), defaultBlockTags);
+
+      // recreate block tags
+      List<TagKey<Block>> actualBlockTags = new ArrayList<>();
+      for (String loadedBlockTag : loadedBlockTags) {
+        TagKey<Block> tag = TagKey.create(Registries.BLOCK, ResourceLocation.parse(loadedBlockTag));
+        actualBlockTags.add(tag);
+      }
+
+      // update config with final list
+      ModConfig.VALID_SPAWN_BLOCK_TAGS.setter().accept(actualBlockTags);
+
+      // endregion blockTagGetters
+
+
       // setters (saving to config file)
       config.setComment(ModConfig.SPAWN_CHANCE.key(), " Chance for a golem to spawn in a valid location. (Range: 0.0 to 1.0, Default: 0.05) RELOADABLE WITH /reload");
       config.set(ModConfig.SPAWN_CHANCE.key(), String.valueOf(ModConfig.SPAWN_CHANCE.getter().get().floatValue()));
@@ -61,6 +90,9 @@ public class ModConfigIO {
       config.set(ModConfig.STEP_HEIGHT.key(), String.valueOf(ModConfig.STEP_HEIGHT.getter().get().doubleValue()));
       config.setComment(ModConfig.WATER_MOVEMENT_EFFICIENCY.key(), " Slowness penalty for golem navigating through water. (RESTART REQUIRED)");
       config.set(ModConfig.WATER_MOVEMENT_EFFICIENCY.key(), String.valueOf(ModConfig.WATER_MOVEMENT_EFFICIENCY.getter().get().doubleValue()));
+
+      config.setComment(ModConfig.VALID_SPAWN_BLOCK_TAGS.key(), " Generalized tags for blocks that the golem can spawn on naturally. RELOADABLE WITH /reload");
+      config.set(ModConfig.VALID_SPAWN_BLOCK_TAGS.key(), loadedBlockTags);
 
       config.save();
     } catch (Exception e) {

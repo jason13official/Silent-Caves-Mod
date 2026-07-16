@@ -56,11 +56,9 @@ public class DeafeningGolem extends AbstractDeafeningBlockIdMonster {
       return false;
     }
 
-    // if the collection of tags we can spawn on and tags of block we're on contain similar elements (ARE jointed)
-    boolean shouldSpawn = !Collections.disjoint(
-        AbstractBlockIdMonster.VALID_SPAWNS.get(),
-        level.getBlockState(blockPos.below()).getTags().toList()
-    );
+    // if the collection of tags we can spawn on and the tags of block we're on contain similar elements (not disjointed)
+    boolean shouldSpawn = !Collections.disjoint(AbstractBlockIdMonster.VALID_SPAWNS.get(), level.getBlockState(blockPos.below()).getTags().toList())
+        || !Collections.disjoint(ModConfig.VALID_SPAWN_BLOCK_TAGS.getter().get(), level.getBlockState(blockPos.below()).getTags().toList());
 
     if (!shouldSpawn) {
       return false;

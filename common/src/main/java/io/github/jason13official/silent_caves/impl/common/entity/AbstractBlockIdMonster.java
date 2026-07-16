@@ -1,6 +1,7 @@
 package io.github.jason13official.silent_caves.impl.common.entity;
 
 import io.github.jason13official.silent_caves.api.common.entity.IBlockIdHolder;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Supplier;
 import net.minecraft.core.registries.BuiltInRegistries;
@@ -26,12 +27,12 @@ import org.jetbrains.annotations.Nullable;
 
 public abstract class AbstractBlockIdMonster extends Monster implements IBlockIdHolder {
 
-  public static final Supplier<List<TagKey<Block>>> VALID_SPAWNS = () -> List.of(
+  public static final Supplier<List<TagKey<Block>>> VALID_SPAWNS = () -> new ArrayList<>(List.of(
       BlockTags.GOLD_ORES, BlockTags.IRON_ORES, BlockTags.DIAMOND_ORES,
       BlockTags.REDSTONE_ORES, BlockTags.LAPIS_ORES, BlockTags.COAL_ORES,
       BlockTags.EMERALD_ORES, BlockTags.COPPER_ORES, BlockTags.MINEABLE_WITH_PICKAXE,
       BlockTags.BASE_STONE_OVERWORLD, BlockTags.STONE_ORE_REPLACEABLES, BlockTags.DEEPSLATE_ORE_REPLACEABLES,
-      BlockTags.BASE_STONE_NETHER, BlockTags.DIRT);
+      BlockTags.BASE_STONE_NETHER, BlockTags.DIRT));
 
   /// minecraft:stone, an identifier within the BLOCKS registry
   public static ResourceLocation DEFAULT_IDENTIFIER = ResourceLocation.withDefaultNamespace("stone");

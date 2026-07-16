@@ -1,7 +1,12 @@
 package io.github.jason13official.silent_caves.impl.common;
 
+import io.github.jason13official.silent_caves.impl.common.entity.AbstractBlockIdMonster;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
+import net.minecraft.tags.TagKey;
+import net.minecraft.world.level.block.Block;
 
 public class ModConfig {
 
@@ -15,6 +20,8 @@ public class ModConfig {
   private static double stepHeight = 1.2D;
   private static double waterMovementEfficiency = 0.85D;
 
+  private static List<TagKey<Block>> validSpawnBlockTags = AbstractBlockIdMonster.VALID_SPAWNS.get();
+
   public static final ConfigGetterSetter<Float> SPAWN_CHANCE = new ConfigGetterSetter<>("spawn_chance", () -> Math.clamp(spawnChance, 0.0f, 1.0f), f -> spawnChance = Math.clamp(spawnChance, 0.0f, 1.0f));
   
   public static final ConfigGetterSetter<Double> MAX_HEALTH = new ConfigGetterSetter<>("max_health", () -> maxHealth, D -> maxHealth = D);
@@ -24,6 +31,23 @@ public class ModConfig {
   public static final ConfigGetterSetter<Double> FOLLOW_RANGE = new ConfigGetterSetter<>("follow_range", () -> followRange, D -> followRange = D);
   public static final ConfigGetterSetter<Double> STEP_HEIGHT = new ConfigGetterSetter<>("step_height", () -> stepHeight, D -> stepHeight = D);
   public static final ConfigGetterSetter<Double> WATER_MOVEMENT_EFFICIENCY = new ConfigGetterSetter<>("water_movement_efficiency", () -> waterMovementEfficiency, D -> waterMovementEfficiency = D);
+
+  /// gets the current value, or clears current list and overwrites with given list instead
+  public static final ConfigGetterSetter<List<TagKey<Block>>> VALID_SPAWN_BLOCK_TAGS = new ConfigGetterSetter<>("valid_spawn_block_tags", () -> validSpawnBlockTags, list -> {
+
+    // setter logic
+
+    validSpawnBlockTags.clear();
+
+    // add if they are not in the list
+    for (TagKey<Block> blockTagKey : list) {
+      if (!validSpawnBlockTags.contains(blockTagKey)) {
+        validSpawnBlockTags.add(blockTagKey);
+      }
+    }
+  });
+
+  public static final ConfigGetterSetter<List<TagKey<Block>>> VALID_SPAWN_BLOCKS = new ConfigGetterSetter<>("valid_spawn_blocks", () -> null, list -> {});
 
   public record ConfigGetterSetter<T>(String key, Supplier<T> getter, Consumer<T> setter) {
   }
