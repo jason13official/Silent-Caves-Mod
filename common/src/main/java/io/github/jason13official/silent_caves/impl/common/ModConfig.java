@@ -21,6 +21,7 @@ public class ModConfig {
   private static double waterMovementEfficiency = 0.85D;
 
   private static List<TagKey<Block>> validSpawnBlockTags = AbstractBlockIdMonster.VALID_SPAWNS.get();
+  private static List<Block> validSpawnBlocks = new ArrayList<>();
 
   public static final ConfigGetterSetter<Float> SPAWN_CHANCE = new ConfigGetterSetter<>("spawn_chance", () -> Math.clamp(spawnChance, 0.0f, 1.0f), f -> spawnChance = Math.clamp(spawnChance, 0.0f, 1.0f));
   
@@ -47,7 +48,16 @@ public class ModConfig {
     }
   });
 
-  public static final ConfigGetterSetter<List<TagKey<Block>>> VALID_SPAWN_BLOCKS = new ConfigGetterSetter<>("valid_spawn_blocks", () -> null, list -> {});
+  public static final ConfigGetterSetter<List<Block>> VALID_SPAWN_BLOCKS = new ConfigGetterSetter<>("valid_spawn_blocks", () -> validSpawnBlocks, list -> {
+
+    validSpawnBlocks.clear();
+
+    for (Block block : list) {
+      if (!validSpawnBlocks.contains(block)) {
+        validSpawnBlocks.add(block);
+      }
+    }
+  });
 
   public record ConfigGetterSetter<T>(String key, Supplier<T> getter, Consumer<T> setter) {
   }

@@ -61,14 +61,16 @@ public class DeafeningGolem extends AbstractDeafeningBlockIdMonster {
         || !Collections.disjoint(ModConfig.VALID_SPAWN_BLOCK_TAGS.getter().get(), level.getBlockState(blockPos.below()).getTags().toList());
 
     if (!shouldSpawn) {
-      return false;
+
+      System.out.println("checking block below golem");
+      shouldSpawn = ModConfig.VALID_SPAWN_BLOCKS.getter().get().contains(level.getBlockState(blockPos.below()).getBlock());
     }
 
-    if (Services.PLATFORM.isDevelopmentEnvironment()) {
+    if (shouldSpawn && Services.PLATFORM.isDevelopmentEnvironment()) {
       Constants.LOG.info("Should spawn golem at {}", blockPos.toShortString());
     }
 
-    return true;
+    return shouldSpawn;
   };
 
   private static final byte EVENT_ATTACK_FLING = 64;

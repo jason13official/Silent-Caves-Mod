@@ -10,6 +10,7 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.tags.TagKey;
@@ -71,6 +72,25 @@ public class ModConfigIO {
 
       // endregion blockTagGetters
 
+      // region blocksGetters
+
+      List<String> defaultBlockIds = new ArrayList<>(); // no default value
+
+      // get configured block id values as a list of strings
+      List<String> loadedBlockIds = config.getOrElse(ModConfig.VALID_SPAWN_BLOCKS.key(), defaultBlockIds);
+
+      // recreate block ids from by parsing as resource locations and getting from BLOCK registry
+      List<Block> actualBlocks = new ArrayList<>();
+      for (String loadedBlockId : loadedBlockIds) {
+        Block block = BuiltInRegistries.BLOCK.get(ResourceLocation.parse(loadedBlockId));
+        actualBlocks.add(block);
+      }
+
+      // update config with final list
+      ModConfig.VALID_SPAWN_BLOCKS.setter().accept(actualBlocks);
+
+      // endregion blocksGetters
+
 
       // setters (saving to config file)
       config.setComment(ModConfig.SPAWN_CHANCE.key(), " Chance for a golem to spawn in a valid location. (Range: 0.0 to 1.0, Default: 0.05) RELOADABLE WITH /reload");
@@ -91,8 +111,11 @@ public class ModConfigIO {
       config.setComment(ModConfig.WATER_MOVEMENT_EFFICIENCY.key(), " Slowness penalty for golem navigating through water. (RESTART REQUIRED)");
       config.set(ModConfig.WATER_MOVEMENT_EFFICIENCY.key(), String.valueOf(ModConfig.WATER_MOVEMENT_EFFICIENCY.getter().get().doubleValue()));
 
-      config.setComment(ModConfig.VALID_SPAWN_BLOCK_TAGS.key(), " Generalized tags for blocks that the golem can spawn on naturally. RELOADABLE WITH /reload");
+      config.setComment(ModConfig.VALID_SPAWN_BLOCK_TAGS.key(), " Generalized tags for blocks that the golem may spawn on naturally. RELOADABLE WITH /reload");
       config.set(ModConfig.VALID_SPAWN_BLOCK_TAGS.key(), loadedBlockTags);
+
+      config.setComment(ModConfig.VALID_SPAWN_BLOCKS.key(), " Specific blocks the golem may spawn on naturally. RELOADABLE WITH /reload");
+      config.set(ModConfig.VALID_SPAWN_BLOCKS.key(), loadedBlockIds);
 
       config.save();
     } catch (Exception e) {
