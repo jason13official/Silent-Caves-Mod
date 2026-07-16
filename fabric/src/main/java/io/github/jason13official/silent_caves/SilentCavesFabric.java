@@ -1,5 +1,6 @@
 package io.github.jason13official.silent_caves;
 
+import io.github.jason13official.silent_caves.impl.common.entity.DeafeningGolem;
 import io.github.jason13official.silent_caves.impl.common.registry.ModBlocks;
 import io.github.jason13official.silent_caves.impl.common.registry.ModEntities;
 import io.github.jason13official.silent_caves.impl.common.registry.ModItems;
@@ -10,6 +11,8 @@ import io.github.jason13official.silent_caves.impl.common.registry.ModTiles;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import net.fabricmc.api.ModInitializer;
+import net.fabricmc.fabric.api.biome.v1.BiomeModifications;
+import net.fabricmc.fabric.api.biome.v1.BiomeSelectors;
 import net.fabricmc.fabric.api.object.builder.v1.entity.FabricDefaultAttributeRegistry;
 import net.fabricmc.fabric.api.resource.ResourceManagerHelper;
 import net.fabricmc.fabric.api.resource.SimpleSynchronousResourceReloadListener;
@@ -18,6 +21,10 @@ import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.packs.PackType;
 import net.minecraft.server.packs.resources.ResourceManager;
+import net.minecraft.world.entity.MobCategory;
+import net.minecraft.world.entity.SpawnPlacementTypes;
+import net.minecraft.world.entity.SpawnPlacements;
+import net.minecraft.world.level.levelgen.Heightmap.Types;
 
 public class SilentCavesFabric implements ModInitializer {
 
@@ -35,6 +42,18 @@ public class SilentCavesFabric implements ModInitializer {
     SilentCaves.init();
 
     SilentCaves.registerEntityAttributes(FabricDefaultAttributeRegistry::register);
+
+    SpawnPlacements.register(ModEntities.DEAFENING_GOLEM, SpawnPlacementTypes.ON_GROUND, Types.MOTION_BLOCKING_NO_LEAVES, DeafeningGolem.SPAWN_PREDICATE);
+    BiomeModifications.addSpawn(
+        context -> {
+          return BiomeSelectors.foundInOverworld().test(context) || BiomeSelectors.foundInTheNether().test(context);
+        },
+        MobCategory.MONSTER,
+        ModEntities.DEAFENING_GOLEM,
+        50,  // weight — intentionally rare
+        2,  // minCount
+        6   // maxCount
+    );
 
     ResourceManagerHelper.get(PackType.SERVER_DATA).registerReloadListener(new ResourceReloadListener());
   }

@@ -1,0 +1,12 @@
+{
+  "type": "neoforge:add_spawns",
+  "biomes": "#silent_caves:valid",
+  "spawners": [
+    {
+      "type": "silent_caves:deafening_golem",
+      "weight": 50,
+      "minCount": 2,
+      "maxCount": 6
+    }
+  ]
+}

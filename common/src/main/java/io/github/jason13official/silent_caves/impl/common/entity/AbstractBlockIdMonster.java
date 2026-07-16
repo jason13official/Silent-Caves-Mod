@@ -1,6 +1,8 @@
 package io.github.jason13official.silent_caves.impl.common.entity;
 
 import io.github.jason13official.silent_caves.api.common.entity.IBlockIdHolder;
+import java.util.List;
+import java.util.function.Supplier;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.syncher.EntityDataAccessor;
@@ -8,6 +10,8 @@ import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.network.syncher.SynchedEntityData.Builder;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.tags.BlockTags;
+import net.minecraft.tags.TagKey;
 import net.minecraft.world.DifficultyInstance;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.MobSpawnType;
@@ -21,6 +25,13 @@ import net.minecraft.world.level.block.state.BlockState;
 import org.jetbrains.annotations.Nullable;
 
 public abstract class AbstractBlockIdMonster extends Monster implements IBlockIdHolder {
+
+  public static final Supplier<List<TagKey<Block>>> VALID_SPAWNS = () -> List.of(
+      BlockTags.GOLD_ORES, BlockTags.IRON_ORES, BlockTags.DIAMOND_ORES,
+      BlockTags.REDSTONE_ORES, BlockTags.LAPIS_ORES, BlockTags.COAL_ORES,
+      BlockTags.EMERALD_ORES, BlockTags.COPPER_ORES, BlockTags.MINEABLE_WITH_PICKAXE,
+      BlockTags.BASE_STONE_OVERWORLD, BlockTags.STONE_ORE_REPLACEABLES, BlockTags.DEEPSLATE_ORE_REPLACEABLES,
+      BlockTags.BASE_STONE_NETHER, BlockTags.DIRT);
 
   /// minecraft:stone, an identifier within the BLOCKS registry
   public static ResourceLocation DEFAULT_IDENTIFIER = ResourceLocation.withDefaultNamespace("stone");

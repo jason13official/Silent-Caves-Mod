@@ -1,5 +1,6 @@
 package io.github.jason13official.silent_caves;
 
+import io.github.jason13official.silent_caves.impl.common.entity.DeafeningGolem;
 import io.github.jason13official.silent_caves.impl.common.registry.ModBlocks;
 import io.github.jason13official.silent_caves.impl.common.registry.ModEntities;
 import io.github.jason13official.silent_caves.impl.common.registry.ModItems;
@@ -16,6 +17,9 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.packs.resources.ResourceManager;
 import net.minecraft.server.packs.resources.SimplePreparableReloadListener;
 import net.minecraft.util.profiling.ProfilerFiller;
+import net.minecraft.world.entity.SpawnPlacementTypes;
+import net.minecraft.world.level.levelgen.Heightmap;
+import net.minecraft.world.level.levelgen.Heightmap.Types;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.common.Mod;
@@ -24,6 +28,8 @@ import net.neoforged.fml.loading.FMLLoader;
 import net.neoforged.neoforge.common.NeoForge;
 import net.neoforged.neoforge.event.AddReloadListenerEvent;
 import net.neoforged.neoforge.event.entity.EntityAttributeCreationEvent;
+import net.neoforged.neoforge.event.entity.RegisterSpawnPlacementsEvent;
+import net.neoforged.neoforge.event.entity.RegisterSpawnPlacementsEvent.Operation;
 import net.neoforged.neoforge.registries.RegisterEvent;
 
 @Mod(Constants.MOD_ID)
@@ -49,6 +55,10 @@ public class SilentCavesNeoForge {
       SilentCaves.registerEntityAttributes((entityType, builder) -> {
         event.put(entityType, builder.build());
       });
+    });
+
+    EVENT_BUS.addListener((Consumer<RegisterSpawnPlacementsEvent>) event -> {
+      event.register(ModEntities.DEAFENING_GOLEM, SpawnPlacementTypes.ON_GROUND, Types.MOTION_BLOCKING_NO_LEAVES, DeafeningGolem.SPAWN_PREDICATE, Operation.REPLACE);
     });
 
     NeoForge.EVENT_BUS.addListener((Consumer<AddReloadListenerEvent>) event -> {

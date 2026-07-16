@@ -1,8 +1,12 @@
 package io.github.jason13official.silent_caves.impl.common.entity;
 
+import io.github.jason13official.silent_caves.Constants;
 import io.github.jason13official.silent_caves.api.common.entity.IBlockIdHolder;
 import io.github.jason13official.silent_caves.impl.client.animation.DeafeningGolemAnimations;
 import io.github.jason13official.silent_caves.impl.common.entity.navigation.CrawlCapableNavigation;
+import io.github.jason13official.silent_caves.impl.common.registry.ModEntities;
+import io.github.jason13official.silent_caves.platform.Services;
+import java.util.Collections;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
@@ -15,6 +19,7 @@ import net.minecraft.world.entity.EntityDimensions;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.Pose;
+import net.minecraft.world.entity.SpawnPlacements;
 import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.ai.goal.MeleeAttackGoal;
@@ -23,12 +28,48 @@ import net.minecraft.world.entity.ai.goal.RandomLookAroundGoal;
 import net.minecraft.world.entity.ai.goal.WaterAvoidingRandomStrollGoal;
 import net.minecraft.world.entity.ai.goal.target.NearestAttackableTargetGoal;
 import net.minecraft.world.entity.ai.navigation.PathNavigation;
+import net.minecraft.world.entity.monster.Monster;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.LightLayer;
 import net.minecraft.world.level.pathfinder.Node;
 import net.minecraft.world.level.pathfinder.Path;
 import net.minecraft.world.phys.AABB;
 
 public class DeafeningGolem extends AbstractDeafeningBlockIdMonster {
+
+  public static final SpawnPlacements.SpawnPredicate<DeafeningGolem> SPAWN_PREDICATE = (entityType, level, mobSpawnType, blockPos, randomSource) -> {
+
+    // standard monster spawning
+    if (!Monster.checkMonsterSpawnRules(ModEntities.DEAFENING_GOLEM, level, mobSpawnType, blockPos, randomSource)) {
+      return false;
+    }
+
+    // must be underground
+    if (level.canSeeSky(blockPos)) {
+      return false;
+    }
+
+    // 5% chance to spawn naturally
+    if (level.getRandom().nextFloat() >= 0.05f) {
+      return false;
+    }
+
+    // if the collection of tags we can spawn on and tags of block we're on contain similar elements (ARE jointed)
+    boolean shouldSpawn = !Collections.disjoint(
+        AbstractBlockIdMonster.VALID_SPAWNS.get(),
+        level.getBlockState(blockPos.below()).getTags().toList()
+    );
+
+    if (!shouldSpawn) {
+      return false;
+    }
+
+    if (Services.PLATFORM.isDevelopmentEnvironment()) {
+      Constants.LOG.info("Should spawn golem at {}", blockPos.toShortString());
+    }
+
+    return true;
+  };
 
   private static final byte EVENT_ATTACK_FLING = 64;
   private static final byte EVENT_ATTACK_SWIPE_RIGHT = 65;
@@ -187,7 +228,7 @@ public class DeafeningGolem extends AbstractDeafeningBlockIdMonster {
   /// zeroed out while [DeafeningGolem#hearNoEvilFreezeTicks] is active so [LivingEntity#travel] doesn't move the entity
   @Override
   public float getSpeed() {
-    
+
     return this.hearNoEvilFreezeTicks > 0 ? 0.0F : super.getSpeed();
   }
 
