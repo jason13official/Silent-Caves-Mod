@@ -1,87 +1,51 @@
 package io.github.jason13official.silent_caves.impl.common.entity;
 
-import io.github.jason13official.silent_caves.Constants;
-import io.github.jason13official.silent_caves.api.common.entity.IBlockIdHolder;
+import io.github.jason13official.silent_caves.api.client.sound.SoundSuppression;
 import io.github.jason13official.silent_caves.impl.client.animation.DeafeningGolemAnimations;
 import io.github.jason13official.silent_caves.impl.common.ModConfig;
+import io.github.jason13official.silent_caves.impl.common.entity.crawl.CrawlPoseController;
 import io.github.jason13official.silent_caves.impl.common.entity.navigation.CrawlCapableNavigation;
-import io.github.jason13official.silent_caves.impl.common.registry.ModEntities;
-import io.github.jason13official.silent_caves.platform.Services;
-import java.util.Collections;
+import java.util.function.Predicate;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.multiplayer.ClientLevel;
+import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.network.chat.Component;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.network.syncher.SynchedEntityData.Builder;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.sounds.SoundEvents;
+import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.entity.AnimationState;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityDimensions;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.Pose;
-import net.minecraft.world.entity.SpawnPlacements;
 import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.ai.goal.MeleeAttackGoal;
 import net.minecraft.world.entity.ai.goal.MoveTowardsTargetGoal;
 import net.minecraft.world.entity.ai.goal.RandomLookAroundGoal;
 import net.minecraft.world.entity.ai.goal.RandomStrollGoal;
+import net.minecraft.world.entity.ai.goal.target.HurtByTargetGoal;
 import net.minecraft.world.entity.ai.goal.target.NearestAttackableTargetGoal;
 import net.minecraft.world.entity.ai.navigation.PathNavigation;
-import net.minecraft.world.entity.monster.Monster;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.level.LightLayer;
-import net.minecraft.world.level.pathfinder.Node;
-import net.minecraft.world.level.pathfinder.Path;
 import net.minecraft.world.level.pathfinder.PathType;
-import net.minecraft.world.phys.AABB;
+import org.jetbrains.annotations.Nullable;
 
 public class DeafeningGolem extends AbstractDeafeningBlockIdMonster {
-
-  public static final SpawnPlacements.SpawnPredicate<DeafeningGolem> SPAWN_PREDICATE = (entityType, level, mobSpawnType, blockPos, randomSource) -> {
-
-    // standard monster spawning
-    if (!Monster.checkMonsterSpawnRules(ModEntities.DEAFENING_GOLEM, level, mobSpawnType, blockPos, randomSource)) {
-      return false;
-    }
-
-    // must be underground
-    if (level.canSeeSky(blockPos)) {
-      return false;
-    }
-
-    // 5% chance to spawn naturally
-    if (level.getRandom().nextFloat() >= ModConfig.SPAWN_CHANCE.getter().get()) {
-      return false;
-    }
-
-    // if the collection of tags we can spawn on and the tags of block we're on contain similar elements (not disjointed)
-    boolean shouldSpawn = !Collections.disjoint(AbstractBlockIdMonster.VALID_SPAWNS.get(), level.getBlockState(blockPos.below()).getTags().toList())
-        || !Collections.disjoint(ModConfig.VALID_SPAWN_BLOCK_TAGS.getter().get(), level.getBlockState(blockPos.below()).getTags().toList());
-
-    if (!shouldSpawn) {
-
-      System.out.println("checking block below golem");
-      shouldSpawn = ModConfig.VALID_SPAWN_BLOCKS.getter().get().contains(level.getBlockState(blockPos.below()).getBlock());
-    }
-
-    if (shouldSpawn && Services.PLATFORM.isDevelopmentEnvironment()) {
-      Constants.LOG.info("Should spawn golem at {}", blockPos.toShortString());
-    }
-
-    return shouldSpawn;
-  };
 
   private static final byte EVENT_ATTACK_FLING = 64;
   private static final byte EVENT_ATTACK_SWIPE_RIGHT = 65;
   private static final byte EVENT_HEAR_NO_EVIL = 66;
   private static final byte FLAG_IS_AGGRESSIVE = 0x01;
   private static final byte FLAG_IS_CRAWLING = 0x02;
-
-  /// patch fix for not crawling everywhere
-  private static final int STAND_UP_DELAY_TICKS = 10;
-  private int ticksSinceCrawlNeeded;
 
   /// matches the animation length of [DeafeningGolemAnimations#HEAR_NO_EVIL]; navigation is paused for the duration so the golem doesn't walk mid-animation.
   private static final int HEAR_NO_EVIL_FREEZE_TICKS = 80;
@@ -91,10 +55,7 @@ public class DeafeningGolem extends AbstractDeafeningBlockIdMonster {
 
   private static final EntityDataAccessor<Byte> DATA_ID_FLAGS = SynchedEntityData.defineId(DeafeningGolem.class, EntityDataSerializers.BYTE);
 
-  /// smaller hitbox used while crawling through tight spaces, so the golem doesn't suffocate; the visual model is unchanged, only collision.
-  private static final float CRAWL_WIDTH = 0.7F;
-  private static final float CRAWL_HEIGHT = 0.75F;
-  private static final EntityDimensions CRAWL_DIMENSIONS = EntityDimensions.scalable(CRAWL_WIDTH, CRAWL_HEIGHT);
+  private final CrawlPoseController crawlPoseController = new CrawlPoseController(this);
 
   public final AnimationState IDLE_ANIM_STATE = new AnimationState();
   public final AnimationState WALK_ANIM_STATE = new AnimationState();
@@ -113,16 +74,17 @@ public class DeafeningGolem extends AbstractDeafeningBlockIdMonster {
   public static AttributeSupplier.Builder createMobAttributes() {
 
     return LivingEntity.createLivingAttributes()
-        .add(Attributes.MAX_HEALTH, 200.0D)
-        .add(Attributes.MOVEMENT_SPEED, 0.25D)
-        .add(Attributes.KNOCKBACK_RESISTANCE, 1.0D)
-        .add(Attributes.ATTACK_DAMAGE, 15.0D)
-        .add(Attributes.FOLLOW_RANGE, 32.0D)
-        .add(Attributes.STEP_HEIGHT, 1.2D)
-        .add(Attributes.WATER_MOVEMENT_EFFICIENCY, 0.85D);
+        .add(Attributes.MAX_HEALTH, ModConfig.MAX_HEALTH.getter().get())
+        .add(Attributes.MOVEMENT_SPEED, ModConfig.MOVEMENT_SPEED.getter().get())
+        .add(Attributes.ATTACK_KNOCKBACK, ModConfig.ATTACK_KNOCKBACK.getter().get())
+        .add(Attributes.KNOCKBACK_RESISTANCE, ModConfig.KNOCKBACK_RESISTANCE.getter().get())
+        .add(Attributes.ATTACK_DAMAGE, ModConfig.ATTACK_DAMAGE.getter().get())
+        .add(Attributes.FOLLOW_RANGE, ModConfig.FOLLOW_RANGE.getter().get())
+        .add(Attributes.STEP_HEIGHT, ModConfig.STEP_HEIGHT.getter().get())
+        .add(Attributes.WATER_MOVEMENT_EFFICIENCY, ModConfig.WATER_MOVEMENT_EFFICIENCY.getter().get());
   }
 
-  /// stops fluid currents from sweeping the golem around
+  /// stops fluid currents from moving the golem
   @Override
   public boolean isPushedByFluid() {
 
@@ -156,17 +118,24 @@ public class DeafeningGolem extends AbstractDeafeningBlockIdMonster {
   public void tick() {
     super.tick();
 
-    if (!this.level().isClientSide()) {
+    if (this.level() instanceof ServerLevel level) {
+
+      // every half of a second
+      if (level.getGameTime() % 10 == 0) {
+        // target nearest player
+        Player p = level.getNearestPlayer(this, 16.0D);
+        if (p != null) {
+          this.setTarget(p);
+        }
+      }
+
       if (this.hearNoEvilFreezeTicks > 0) {
         this.hearNoEvilFreezeTicks--;
       }
 
       this.setFlag(FLAG_IS_AGGRESSIVE, this.getTarget() != null);
 
-      boolean needsToCrawl = !this.wouldNotSuffocateAtTargetPose(Pose.STANDING) || this.pathLeadsThroughTightSpace();
-      this.ticksSinceCrawlNeeded = needsToCrawl ? 0 : this.ticksSinceCrawlNeeded + 1;
-
-      boolean crawling = needsToCrawl || this.ticksSinceCrawlNeeded < STAND_UP_DELAY_TICKS;
+      boolean crawling = this.crawlPoseController.tick(this.wouldNotSuffocateAtTargetPose(Pose.STANDING));
       this.setFlag(FLAG_IS_CRAWLING, crawling);
       this.setPose(crawling ? Pose.CROUCHING : Pose.STANDING);
     }
@@ -177,63 +146,56 @@ public class DeafeningGolem extends AbstractDeafeningBlockIdMonster {
   /// shrink the hitbox while crawling; note the [Pose] param, not the crawl flag directly; [#wouldNotSuffocateAtTargetPose] probes [Pose#STANDING] explicitly to decide when it's safe to stand back up, and that must keep resolving to the real full-size box regardless of current pose.
   @Override
   protected EntityDimensions getDefaultDimensions(Pose pose) {
-    return pose == Pose.CROUCHING ? CRAWL_DIMENSIONS : super.getDefaultDimensions(pose);
-  }
-
-  /// true when solid blocks occupy the space between crawl height and standing height at the given position, i.e. the golem can't stand upright there.
-  private boolean hasBlockedOverhead(double x, double y, double z) {
-    AABB overhead = new AABB(x - CRAWL_WIDTH / 2.0, y + CRAWL_HEIGHT, z - CRAWL_WIDTH / 2.0, x + CRAWL_WIDTH / 2.0, y + this.getType().getHeight() + 1.0, z + CRAWL_WIDTH / 2.0);
-    return !this.level().noCollision(this, overhead);
-  }
-
-  /// true when any of the next few nodes on the active path require crawling, so the golem starts crawling before it physically reaches the tight space instead of bumping into the entrance.
-  private boolean pathLeadsThroughTightSpace() {
-    Path path = this.navigation.getPath();
-    if (path == null || path.isDone()) {
-      return false;
-    }
-
-    int next = path.getNextNodeIndex();
-    // int limit = Math.min(next + 5, path.getNodeCount());
-    int limit = Math.min(next + 2, path.getNodeCount());
-    for (int i = next; i < limit; i++) {
-      Node node = path.getNode(i);
-      if (this.hasBlockedOverhead(node.x + 0.5, node.y, node.z + 0.5)) {
-        return true;
-      }
-    }
-
-    return false;
+    return pose == Pose.CROUCHING ? CrawlPoseController.CRAWL_DIMENSIONS : super.getDefaultDimensions(pose);
   }
 
   @Override
   protected PathNavigation createNavigation(Level level) {
 
-    return new CrawlCapableNavigation(this, level, CRAWL_WIDTH, CRAWL_HEIGHT);
+    return new CrawlCapableNavigation(this, level, CrawlPoseController.CRAWL_WIDTH, CrawlPoseController.CRAWL_HEIGHT);
   }
 
   @Override
   protected void registerGoals() {
 
     this.goalSelector.addGoal(1, new MeleeAttackGoal(this, 1.0F, true));
-    this.goalSelector.addGoal(2, new MoveTowardsTargetGoal(this, 0.9, 48.0F));
+    this.goalSelector.addGoal(2, new MoveTowardsTargetGoal(this, 0.9, 24.0F));
     this.goalSelector.addGoal(7, new RandomStrollGoal(this, 1.0));
     this.goalSelector.addGoal(8, new RandomLookAroundGoal(this));
 
-    this.targetSelector.addGoal(1, new NearestAttackableTargetGoal<>(this, LivingEntity.class, false, living -> {
+    this.targetSelector.addGoal(1, new HurtByTargetGoal(this).setAlertOthers());
+    this.targetSelector.addGoal(2, new NearestAttackableTargetGoal<>(this, LivingEntity.class, false, other -> mayTargetForAttacking(this, other)));
+  }
 
-      if (living instanceof DeafeningGolem golem) {
-        return this.getSpawnedOnBlock() != golem.getSpawnedOnBlock();
+  @Override
+  public void setTarget(@Nullable LivingEntity target) {
+
+    // skip setting target if it's a golem that spawned on the same kind of block that we did
+    if (target instanceof DeafeningGolem other) {
+      if (this.getSpawnedOnBlock() == other.getSpawnedOnBlock()) {
+        return;
       }
+    }
 
-      return true;
-    }));
+    super.setTarget(target);
+  }
+
+  public static boolean mayTargetForAttacking(DeafeningGolem self, LivingEntity other) {
+
+    return true;
+
+    // allow targeting if not a golem, or is golem of different block
+    // return !(other instanceof DeafeningGolem golem); // || self.getSpawnedOnBlock() != golem.getSpawnedOnBlock();
   }
 
   @Override
   public boolean killedEntity(ServerLevel level, LivingEntity entity) {
-    this.level().broadcastEntityEvent(this, EVENT_HEAR_NO_EVIL);
-    this.hearNoEvilFreezeTicks = HEAR_NO_EVIL_FREEZE_TICKS;
+    // TODO circle back to this lol
+//    if (entity instanceof Player) {
+//      System.out.println("golem killed player");
+//      this.level().broadcastEntityEvent(this, EVENT_HEAR_NO_EVIL);
+//      this.hearNoEvilFreezeTicks = HEAR_NO_EVIL_FREEZE_TICKS;
+//    }
     return super.killedEntity(level, entity);
   }
 
@@ -256,6 +218,13 @@ public class DeafeningGolem extends AbstractDeafeningBlockIdMonster {
     if (result) {
       this.level().broadcastEntityEvent(this, this.random.nextBoolean() ? EVENT_ATTACK_FLING : EVENT_ATTACK_SWIPE_RIGHT);
     }
+
+    if ( target instanceof Player player && player.getHealth() <= 0.00005f) {
+      System.out.println("golem killed player ?");
+      this.level().broadcastEntityEvent(this, EVENT_HEAR_NO_EVIL);
+      this.hearNoEvilFreezeTicks = HEAR_NO_EVIL_FREEZE_TICKS;
+    }
+
     return result;
   }
 
@@ -266,9 +235,22 @@ public class DeafeningGolem extends AbstractDeafeningBlockIdMonster {
     } else if (id == EVENT_ATTACK_SWIPE_RIGHT) {
       this.ATTACK_SWIPE_RIGHT_ANIM_STATE.start(this.tickCount);
     } else if (id == EVENT_HEAR_NO_EVIL) {
+
+      if (this.level() instanceof ClientLevel level) {
+        laugh(level, this.blockPosition());
+      }
+
       this.HEAR_NO_EVIL_ANIM_STATE.start(this.tickCount);
     } else {
       super.handleEntityEvent(id);
+    }
+  }
+
+  private static void laugh(ClientLevel level, BlockPos blockPos) {
+    SoundSuppression.restoreClientVolumes(Minecraft.getInstance());
+    if (Minecraft.getInstance().player != null) {
+      level.playSound(Minecraft.getInstance().player, blockPos, SoundEvents.WITCH_CELEBRATE, SoundSource.PLAYERS, 1.0f, level.getRandom().nextBoolean() ? 0.2f : 0.5f);
+      Minecraft.getInstance().player.sendSystemMessage(Component.translatable("text.silent_caves.laugh"));
     }
   }
 

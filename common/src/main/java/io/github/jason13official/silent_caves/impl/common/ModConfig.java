@@ -14,6 +14,7 @@ public class ModConfig {
 
   private static double maxHealth = 200.0D;
   private static double movementSpeed = 0.25D;
+  private static double attackKnockback = 2.0D;
   private static double knockbackResistance = 1.0D;
   private static double attackDamage = 15.0D;
   private static double followRange = 32.0D;
@@ -27,6 +28,7 @@ public class ModConfig {
   
   public static final ConfigGetterSetter<Double> MAX_HEALTH = new ConfigGetterSetter<>("max_health", () -> maxHealth, D -> maxHealth = D);
   public static final ConfigGetterSetter<Double> MOVEMENT_SPEED = new ConfigGetterSetter<>("movement_speed", () -> movementSpeed, D -> movementSpeed = D);
+  public static final ConfigGetterSetter<Double> ATTACK_KNOCKBACK = new ConfigGetterSetter<>("attack_knockback", () -> attackKnockback, D -> attackKnockback = D);
   public static final ConfigGetterSetter<Double> KNOCKBACK_RESISTANCE = new ConfigGetterSetter<>("knockback_resistance", () -> knockbackResistance, D -> knockbackResistance = D);
   public static final ConfigGetterSetter<Double> ATTACK_DAMAGE = new ConfigGetterSetter<>("attack_damage", () -> attackDamage, D -> attackDamage = D);
   public static final ConfigGetterSetter<Double> FOLLOW_RANGE = new ConfigGetterSetter<>("follow_range", () -> followRange, D -> followRange = D);

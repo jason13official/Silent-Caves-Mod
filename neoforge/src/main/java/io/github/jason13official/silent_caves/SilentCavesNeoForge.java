@@ -1,7 +1,7 @@
 package io.github.jason13official.silent_caves;
 
 import io.github.jason13official.silent_caves.impl.common.ModConfigIO;
-import io.github.jason13official.silent_caves.impl.common.entity.DeafeningGolem;
+import io.github.jason13official.silent_caves.impl.common.entity.spawn.DeafeningGolemSpawnRules;
 import io.github.jason13official.silent_caves.impl.common.registry.ModBlocks;
 import io.github.jason13official.silent_caves.impl.common.registry.ModEntities;
 import io.github.jason13official.silent_caves.impl.common.registry.ModItems;
@@ -61,7 +61,7 @@ public class SilentCavesNeoForge {
     });
 
     EVENT_BUS.addListener((Consumer<RegisterSpawnPlacementsEvent>) event -> {
-      event.register(ModEntities.DEAFENING_GOLEM, SpawnPlacementTypes.ON_GROUND, Types.MOTION_BLOCKING_NO_LEAVES, DeafeningGolem.SPAWN_PREDICATE, Operation.REPLACE);
+      event.register(ModEntities.DEAFENING_GOLEM, SpawnPlacementTypes.ON_GROUND, Types.MOTION_BLOCKING_NO_LEAVES, DeafeningGolemSpawnRules.SPAWN_PREDICATE, Operation.REPLACE);
     });
 
     NeoForge.EVENT_BUS.addListener((Consumer<AddReloadListenerEvent>) event -> {

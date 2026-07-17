@@ -1,7 +1,7 @@
 package io.github.jason13official.silent_caves;
 
 import io.github.jason13official.silent_caves.impl.common.ModConfigIO;
-import io.github.jason13official.silent_caves.impl.common.entity.DeafeningGolem;
+import io.github.jason13official.silent_caves.impl.common.entity.spawn.DeafeningGolemSpawnRules;
 import io.github.jason13official.silent_caves.impl.common.registry.ModBlocks;
 import io.github.jason13official.silent_caves.impl.common.registry.ModEntities;
 import io.github.jason13official.silent_caves.impl.common.registry.ModItems;
@@ -45,7 +45,7 @@ public class SilentCavesFabric implements ModInitializer {
 
     SilentCaves.registerEntityAttributes(FabricDefaultAttributeRegistry::register);
 
-    SpawnPlacements.register(ModEntities.DEAFENING_GOLEM, SpawnPlacementTypes.ON_GROUND, Types.MOTION_BLOCKING_NO_LEAVES, DeafeningGolem.SPAWN_PREDICATE);
+    SpawnPlacements.register(ModEntities.DEAFENING_GOLEM, SpawnPlacementTypes.ON_GROUND, Types.MOTION_BLOCKING_NO_LEAVES, DeafeningGolemSpawnRules.SPAWN_PREDICATE);
     BiomeModifications.addSpawn(
         context -> {
           return BiomeSelectors.foundInOverworld().test(context) || BiomeSelectors.foundInTheNether().test(context);

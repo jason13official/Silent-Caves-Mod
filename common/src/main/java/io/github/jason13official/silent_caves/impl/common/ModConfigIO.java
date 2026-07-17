@@ -4,6 +4,7 @@ import com.electronwill.nightconfig.core.Config;
 import com.electronwill.nightconfig.core.file.CommentedFileConfig;
 import io.github.jason13official.silent_caves.Constants;
 import io.github.jason13official.silent_caves.impl.common.entity.AbstractBlockIdMonster;
+import io.github.jason13official.silent_caves.platform.Services;
 import java.io.File;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -39,6 +40,11 @@ public class ModConfigIO {
 
       if (Files.exists(configFilepath)) {
         config.load();
+
+        // delete the old config file after loading it into memory
+        if (configFile.delete() && Services.PLATFORM.isDevelopmentEnvironment()) {
+          Constants.LOG.info("Removed old config file, writing new file/overwriting.");
+        }
       }
 
       // getters (loading from config file)
@@ -46,6 +52,7 @@ public class ModConfigIO {
 
       ModConfig.MAX_HEALTH.setter().accept(Double.parseDouble(config.getOrElse(ModConfig.MAX_HEALTH.key(), String.valueOf(ModConfig.MAX_HEALTH.getter().get().doubleValue()))));
       ModConfig.MOVEMENT_SPEED.setter().accept(Double.parseDouble(config.getOrElse(ModConfig.MOVEMENT_SPEED.key(), String.valueOf(ModConfig.MOVEMENT_SPEED.getter().get().doubleValue()))));
+      ModConfig.ATTACK_KNOCKBACK.setter().accept(Double.parseDouble(config.getOrElse(ModConfig.ATTACK_KNOCKBACK.key(), String.valueOf(ModConfig.ATTACK_KNOCKBACK.getter().get().doubleValue()))));
       ModConfig.KNOCKBACK_RESISTANCE.setter().accept(Double.parseDouble(config.getOrElse(ModConfig.KNOCKBACK_RESISTANCE.key(), String.valueOf(ModConfig.KNOCKBACK_RESISTANCE.getter().get().doubleValue()))));
       ModConfig.ATTACK_DAMAGE.setter().accept(Double.parseDouble(config.getOrElse(ModConfig.ATTACK_DAMAGE.key(), String.valueOf(ModConfig.ATTACK_DAMAGE.getter().get().doubleValue()))));
       ModConfig.FOLLOW_RANGE.setter().accept(Double.parseDouble(config.getOrElse(ModConfig.FOLLOW_RANGE.key(), String.valueOf(ModConfig.FOLLOW_RANGE.getter().get().doubleValue()))));
@@ -100,6 +107,8 @@ public class ModConfigIO {
       config.set(ModConfig.MAX_HEALTH.key(), String.valueOf(ModConfig.MAX_HEALTH.getter().get().doubleValue()));
       config.setComment(ModConfig.MOVEMENT_SPEED.key(), " Max speed of the golem. (RESTART REQUIRED)");
       config.set(ModConfig.MOVEMENT_SPEED.key(), String.valueOf(ModConfig.MOVEMENT_SPEED.getter().get().doubleValue()));
+      config.setComment(ModConfig.ATTACK_KNOCKBACK.key(), " Golem's knockback when attacking. (RESTART REQUIRED)");
+      config.set(ModConfig.ATTACK_KNOCKBACK.key(), String.valueOf(ModConfig.ATTACK_KNOCKBACK.getter().get().doubleValue()));
       config.setComment(ModConfig.KNOCKBACK_RESISTANCE.key(), " Golem's resistance to being knocked back by other attacks. (RESTART REQUIRED)");
       config.set(ModConfig.KNOCKBACK_RESISTANCE.key(), String.valueOf(ModConfig.KNOCKBACK_RESISTANCE.getter().get().doubleValue()));
       config.setComment(ModConfig.ATTACK_DAMAGE.key(), " Golem attack damage amount. (RESTART REQUIRED)");
